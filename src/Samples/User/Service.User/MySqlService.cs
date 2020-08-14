@@ -1,22 +1,22 @@
-﻿using Jimu.Database;
-using Jimu.Logger;
+﻿using Jimu.Logger;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using IService.User;
 using IService.User.dto;
 using Dapper;
 using System.Threading.Tasks;
+using System.Data.Common;
+using Jimu.UnitOfWork;
 
 namespace Service.User
 {
     public class MySqlService : IMySqlService
     {
         readonly ILogger _logger;
-        readonly IDbFactory _dbFactory;
-        public MySqlService(ILogger logger, IDbFactory dbFactory)
+        readonly IDbFactory<DbConnection> _dbFactory;
+        public MySqlService(ILoggerFactory loggerFactory, IDbFactory<DbConnection> dbFactory)
         {
-            _logger = logger;
+            _logger = loggerFactory.Create(this.GetType());
             _dbFactory = dbFactory;
         }
         public int AddUser(UserModel user)
@@ -37,10 +37,17 @@ namespace Service.User
 
         public List<UserModel> GetAllUser()
         {
+            List<UserModel> users = new List<UserModel>();
             using (var db = _dbFactory.Create("RWDB"))
             {
-                return db.Query<UserModel>("Select * From user").AsList();
+                users = db.Query<UserModel>("Select * From user").AsList();
             }
+            UserModel user = null;
+            using (var db = _dbFactory.Create())
+            {
+                user = db.QuerySingleOrDefault<UserModel>("Select * From user Where Id = @id", new { id = 1 });
+            }
+            return users;
         }
 
         public Task<List<UserModel>> GetAllUserArray()

@@ -7,13 +7,19 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Jimu.Client.ApiGateway.Core
+namespace Jimu.Client.ApiGateway
 {
     [ModelBinder(BinderType = typeof(JimuModelBinder))]
     public class JimuModel
     {
         public Dictionary<string, object> Data { get; set; } = new Dictionary<string, object>();
-        public JimuModel() { }
+        private ILogger _logger;
+        public JimuModel()
+        {
+            var loggerFactory = JimuClient.Host.Container.Resolve<ILoggerFactory>();
+            _logger = loggerFactory.Create(this.GetType());
+
+        }
         public async void ReadFromContentAsync(Stream content, string contentType = "application/json")
         {
 
@@ -33,8 +39,7 @@ namespace Jimu.Client.ApiGateway.Core
                     }
                     else
                     {
-                        var logger = JimuClient.Host.Container.Resolve<ILogger>();
-                        logger.Error($"JimuModel.ReadFromContentAsync, unsupport content-type: {contentType}, ", ex);
+                        _logger.Error($"JimuModel.ReadFromContentAsync, unsupport content-type: {contentType}, ", ex);
                     }
 
                 }

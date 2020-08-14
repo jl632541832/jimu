@@ -27,7 +27,8 @@ namespace Jimu.Client.HealthCheck
             if (_options != null)
             {
                 var healthCheck = container.Resolve<IHealthCheck>();
-                var logger = container.Resolve<ILogger>();
+                var loggerFactory = container.Resolve<ILoggerFactory>();
+                var logger = loggerFactory.Create(this.GetType());
                 logger.Info($"[config]use server health check, checked job interval: {_options.IntervalMinute} min");
                 healthCheck.RunAsync();
             }

@@ -30,10 +30,11 @@ namespace Jimu.Client.FaultTolerant
         {
             if (_options != null)
             {
-                var logger = container.Resolve<ILogger>();
+                var loggerFactory = container.Resolve<ILoggerFactory>();
+                var logger = loggerFactory.Create(this.GetType());
                 var caller = container.Resolve<IRemoteServiceCaller>();
                 var addressSelector = container.Resolve<IAddressSelector>();
-                caller.UseMiddleware<RetryCallMiddleware>(addressSelector, logger, _options.RetryTimes);
+                caller.UseMiddleware<RetryCallMiddleware>(addressSelector, loggerFactory, _options.RetryTimes);
                 logger.Info($"[config]remote service call failure retry times: {_options.RetryTimes}");
             }
             base.DoInit(container);

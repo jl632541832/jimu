@@ -1,5 +1,5 @@
 ﻿using Autofac;
-using Jimu.Core.Bus;
+using Jimu.Bus;
 using Jimu.Logger;
 using Jimu.Server.ServiceContainer.Implement.Parser;
 using MassTransit;
@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace Jimu.Server.Bus.MassTransit.RabbitMq.Pattern
 {
@@ -45,7 +44,14 @@ namespace Jimu.Server.Bus.MassTransit.RabbitMq.Pattern
                         var myHandlerObj = Activator.CreateInstance(typeof(CommandHandler<>).MakeGenericType(commandType), new object[] { consumerInstance, bus });
                         var consumerHandler = myHandlerObj.GetType().InvokeMember("Handler", BindingFlags.GetProperty, null, myHandlerObj, null);
                         var fastInvoker = FastInvoke.GetMethodInvoker(handlerMethod);
-                        fastInvoker.Invoke(null, new object[] { ep, consumerHandler, null });
+                        try
+                        {
+                            fastInvoker.Invoke(null, new object[] { ep, consumerHandler, null });
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.Error($"error occure when handling RabbitMq consumer: {x.Key}", ex);
+                        }
                     });
                 });
             });

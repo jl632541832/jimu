@@ -27,7 +27,8 @@ namespace Jimu.Client.LoadBalance
         {
             if (_options != null && !string.IsNullOrEmpty(_options.LoadBalance))
             {
-                var logger = container.Resolve<ILogger>();
+                var loggerFactory = container.Resolve<ILoggerFactory>();
+                var logger = loggerFactory.Create(this.GetType());
                 logger.Info($"[config]use {_options.LoadBalance} address selector");
             }
             base.DoInit(container);

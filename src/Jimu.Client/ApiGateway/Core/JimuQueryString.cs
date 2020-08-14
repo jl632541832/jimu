@@ -2,14 +2,12 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Specialized;
 using System.IO;
-using System.Text;
 using System.Web;
 using System.Linq;
 using System.Collections.Generic;
 
-namespace Jimu.Client.ApiGateway.Core
+namespace Jimu.Client.ApiGateway
 {
     [ModelBinder(BinderType = typeof(JimuQueryStringModelBinder))]
     public class JimuQueryString

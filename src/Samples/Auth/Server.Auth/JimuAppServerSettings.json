@@ -1,7 +1,14 @@
 ﻿{
   "JimuNLogOptions": {
     "UseInService": true,
-    "Configuration":  "nlog.config"
+    "EnableConsoleLog": true,
+    "EnableFileLog": true,
+    "FileLogPath": "log",
+    "FileLogLevelMax": "Error",
+    "FileLogLevelMin": "Debug",
+    "ConsoleLogLevelMax": "Error",
+    "ConsoleLogLevelMin": "Debug"
+    //"Configuration":  "nlog.config"
   },
   "JwtAuthorizationOptions": {
     "ServiceInvokeIp": "127.0.0.1", //服务宿主的地址
@@ -23,10 +30,6 @@
     "ServiceGroups": "jimu.sample", //服务注册所属的组别
     "ServiceInvokeIp": "127.0.0.1", //服务宿主的地址
     "ServiceInvokePort": "8001"
-  },
-  "DapperOptions": {
-    "ConnectionString": "",
-    "DbType": "MySql"
   },
   "TransportOptions": {
     "Ip": "127.0.0.1", //服务宿主ip

@@ -24,7 +24,9 @@ namespace Jimu.Client.Auth
         {
             if (_options != null)
             {
-                var logger = container.Resolve<ILogger>();
+                
+                var loggerFactory = container.Resolve<ILoggerFactory>();
+                var logger = loggerFactory.Create(this.GetType());
                 logger.Info($"[config]use jose.jwt for Auth");
 
                 //while (!container.IsRegistered<IRemoteServiceCaller>() || !container.IsRegistered<IClientServiceDiscovery>())

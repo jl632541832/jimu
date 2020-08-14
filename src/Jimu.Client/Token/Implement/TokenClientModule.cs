@@ -1,5 +1,5 @@
 ﻿using Autofac;
-using Jimu.Client.ApiGateway.Core;
+using Jimu.Client.ApiGateway;
 using Jimu.Logger;
 using Jimu.Module;
 using Microsoft.Extensions.Configuration;
@@ -35,7 +35,8 @@ namespace Jimu.Client.Token.Implement
                     return headers.Any() ? headers[0] : null;
                 };
 
-                var logger = container.Resolve<ILogger>();
+                var loggerFactory = container.Resolve<ILoggerFactory>();
+                var logger = loggerFactory.Create(this.GetType());
                 logger.Info($"[config]get token has been set");
             }
             base.DoInit(container);

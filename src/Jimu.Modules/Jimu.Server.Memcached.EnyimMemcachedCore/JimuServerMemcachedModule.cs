@@ -1,15 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Autofac;
-using Jimu;
-using Jimu.Module;
-using Jimu.Server;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Enyim;
 using Microsoft.Extensions.DependencyInjection;
-using Autofac.Extensions.DependencyInjection;
 using Enyim.Caching;
 using Jimu.Logger;
 
@@ -56,7 +49,9 @@ namespace Jimu.Server.Memcached.EnyimMemcachedCore
 
         public override void DoServiceInit(IContainer container)
         {
-            var logger = container.Resolve<ILogger>();
+            
+            var loggerFactory = container.Resolve<ILoggerFactory>();
+            var logger = loggerFactory.Create(this.GetType());
             if (_options != null && _options.Enable)
             {
                 try

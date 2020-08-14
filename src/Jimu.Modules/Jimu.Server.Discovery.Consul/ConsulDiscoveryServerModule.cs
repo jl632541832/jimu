@@ -35,7 +35,9 @@ namespace Jimu.Server.Discovery.Consul
         {
             if (_options != null && _options.Enable)
             {
-                var logger = container.Resolve<ILogger>();
+                
+                var loggerFactory = container.Resolve<ILoggerFactory>();
+                var logger = loggerFactory.Create(this.GetType());
                 logger.Info($"[config]use consul for services discovery, consul ip: {_options.Ip}:{_options.Port}, service group: {_options.ServiceGroups}, server address: {_options.ServiceInvokeIp}:{_options.ServiceInvokePort} ");
 
                 var serviceEntry = container.Resolve<IServiceEntryContainer>();

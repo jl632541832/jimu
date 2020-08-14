@@ -1,7 +1,5 @@
 ﻿using Autofac;
 using Autofac.Extensions.DependencyInjection;
-using Jimu.Client.ApiGateway.Core;
-using Jimu.Common;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;

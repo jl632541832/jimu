@@ -27,7 +27,8 @@ namespace Jimu.Client.Discovery.Implement
         {
             if (_options != null)
             {
-                var logger = container.Resolve<ILogger>();
+                var loggerFactory = container.Resolve<ILoggerFactory>();
+                var logger = loggerFactory.Create(this.GetType());
                 logger.Info($"[config]services discovery auto update job interval: {_options.UpdateJobIntervalMinute} min");
             }
             base.DoInit(container);

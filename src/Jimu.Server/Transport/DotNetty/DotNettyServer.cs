@@ -24,6 +24,7 @@ namespace Jimu.Server.Transport.DotNetty
         private readonly IServiceEntryContainer _serviceEntryContainer;
         private readonly JimuAddress _serviceInvokeAddress;
         private readonly ILogger _logger;
+        private readonly ILoggerFactory _loggerFactory;
         private IChannel _channel;
         private readonly string _serverIp;
         private readonly int _serverPort;
@@ -34,15 +35,16 @@ namespace Jimu.Server.Transport.DotNetty
 
 
 
-        public DotNettyServer(string serverIp, int serverPort, JimuAddress serviceInvokeAddress, IServiceEntryContainer serviceEntryContainer, IJimuDiagnostic jimuApm, ILogger logger)
+        public DotNettyServer(string serverIp, int serverPort, JimuAddress serviceInvokeAddress, IServiceEntryContainer serviceEntryContainer, IJimuDiagnostic jimuApm, ILoggerFactory loggerFactory)
         {
             _serviceEntryContainer = serviceEntryContainer;
             _serviceInvokeAddress = serviceInvokeAddress;
-            _logger = logger;
+            _logger = loggerFactory.Create(this.GetType());
             _middlewares = new Stack<Func<RequestDel, RequestDel>>();
             _serverIp = serverIp;
             _serverPort = serverPort;
             _jimuApm = jimuApm;
+            _loggerFactory = loggerFactory;
         }
         public List<JimuServiceRoute> GetServiceRoutes()
         {
@@ -65,11 +67,16 @@ namespace Jimu.Server.Transport.DotNetty
 
         private async Task OnReceived(IChannelHandlerContext channel, JimuTransportMsg message)
         {
+            if (message == null)
+            {
+                _logger.Info($"message cannot be null");
+                return;
+            }
             _logger.Debug($"begin handling msg: {message.Id}");
             //TaskCompletionSource<TransportMessage> task;
             if (message.ContentType == typeof(JimuRemoteCallData).FullName)
             {
-                IResponse response = new DotNettyResponse(channel, _logger);
+                IResponse response = new DotNettyResponse(channel, _loggerFactory);
                 var thisContext = new ServiceInvokerContext(message, _serviceEntryContainer, response, _logger, _serviceInvokeAddress);
                 Guid operationId = Guid.Empty;
 
@@ -167,22 +174,22 @@ namespace Jimu.Server.Transport.DotNetty
             var workerGroup = new MultithreadEventLoopGroup(4);
             var bootstrap = new ServerBootstrap();
             bootstrap
-                .Group(bossGroup, workerGroup)
-                //.Group(bossGroup, workerGroup)
-                .Channel<TcpServerSocketChannel>()
-                .Option(ChannelOption.SoBacklog, 100)
-                .Option(ChannelOption.Allocator, PooledByteBufferAllocator.Default)
-                .ChildHandler(new ActionChannelInitializer<IChannel>(channel =>
-                {
-                    var pipeline = channel.Pipeline;
-                    pipeline.AddLast(new LengthFieldPrepender(4));
-                    pipeline.AddLast(new LengthFieldBasedFrameDecoder(int.MaxValue, 0, 4, 0, 4));
-                    pipeline.AddLast(new ReadServerMessageChannelHandlerAdapter(_logger));
-                    pipeline.AddLast(new ServerHandlerChannelHandlerAdapter(async (context, message) =>
-                    {
-                        await OnReceived(context, message);
-                    }, _logger));
-                }));
+      .Group(bossGroup, workerGroup)
+      //.Group(bossGroup, workerGroup)
+      .Channel<TcpServerSocketChannel>()
+      .Option(ChannelOption.SoBacklog, 100)
+      .Option(ChannelOption.Allocator, PooledByteBufferAllocator.Default)
+      .ChildHandler(new ActionChannelInitializer<IChannel>(channel =>
+      {
+          var pipeline = channel.Pipeline;
+          pipeline.AddLast(new LengthFieldPrepender(4));
+          pipeline.AddLast(new LengthFieldBasedFrameDecoder(int.MaxValue, 0, 4, 0, 4));
+          pipeline.AddLast(new ReadServerMessageChannelHandlerAdapter(_loggerFactory));
+          pipeline.AddLast(new ServerHandlerChannelHandlerAdapter(async (context, message) =>
+          {
+              await OnReceived(context, message);
+          }, _loggerFactory));
+      }));
 
             //var endpoint = new IPEndPoint(IPAddress.Parse(this.addre), this._port);
             //_channel = await bootstrap.BindAsync(_address.CreateEndPoint()); // bind with ip not support in docker, will not connected
@@ -197,7 +204,6 @@ namespace Jimu.Server.Transport.DotNetty
                 _channel = await bootstrap.BindAsync(_serverPort);
                 _logger.Info($"server start successfully, address is： {JimuHelper.GetLocalIPAddress()}:{_serverPort}");
             }
-
         }
 
         private async Task InvokeMiddleware(RequestDel next, ServiceInvokerContext context)
